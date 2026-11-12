@@ -4,31 +4,26 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  inspect:
+  verify-and-cleanup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Print publication source files
+      - name: Verify final publication source files
         shell: bash
         run: |
           set -euo pipefail
-          echo "===== FILE LIST ====="
-          find _publications _pages _includes -maxdepth 2 -type f | sort
           for f in _publications/*.md; do
             echo "===== PUBLICATION: $f ====="
             cat "$f"
             echo
             echo "===== END PUBLICATION: $f ====="
           done
-          echo "===== INCLUDE: _includes/archive-single.html ====="
-          cat _includes/archive-single.html
-          echo "===== END INCLUDE ====="
-          for f in _pages/*publication*; do
-            [ -f "$f" ] || continue
-            echo "===== PAGE: $f ====="
-            cat "$f"
-            echo "===== END PAGE: $f ====="
-          done
+      - name: Delete temporary inspection branch
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/temp/inspect-publications" || true
