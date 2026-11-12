@@ -1,0 +1,34 @@
+name: Temp inspect publications
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Print publication source files
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "===== FILE LIST ====="
+          find _publications _pages _includes -maxdepth 2 -type f | sort
+          for f in _publications/*.md; do
+            echo "===== PUBLICATION: $f ====="
+            cat "$f"
+            echo
+            echo "===== END PUBLICATION: $f ====="
+          done
+          echo "===== INCLUDE: _includes/archive-single.html ====="
+          cat _includes/archive-single.html
+          echo "===== END INCLUDE ====="
+          for f in _pages/*publication*; do
+            [ -f "$f" ] || continue
+            echo "===== PAGE: $f ====="
+            cat "$f"
+            echo "===== END PAGE: $f ====="
+          done
